@@ -1,0 +1,135 @@
+\chapter{Технологический раздел}
+
+В данном разделе будут описаны средства реализации ПО и листинга кода алгоритмов, а также рассмотрены тестовые случаи.
+
+\section{Средства реализации} 
+
+Для реализации программ я выбрал язык программирования Python, так как я очень хорошо знаком c этим языком и пишу на нем давно, также этот язык является удобным, безопасным и в нем присутствуют инструменты замера времени.
+
+\section{Листинги кода}
+
+В листингах 3.1 - 3.4 приведены реализации алгоритмов, изученных в аналитическом разделе.
+
+\captionsetup{singlelinecheck = false, justification=raggedright}
+\begin{lstlisting}[label=recLevenshtain, caption=Рекурсивный Левенштейн]
+def recLevenshtain(left_str: str, right_str: str) -> int:
+    if left_str == "" or right_str == "":
+        return abs(len(left_str) - len(right_str))
+
+    if left_str[-1] == right_str[-1]:
+        c = 0
+    else:
+        c = 1
+
+    return min(
+        recLevenshtain(left_str, right_str[:-1]) + 1,
+        recLevenshtain(left_str[:-1], right_str) + 1,
+        recLevenshtain(left_str[:-1], right_str[:-1]) + c,
+    )
+\end{lstlisting}
+
+\captionsetup{singlelinecheck = false, justification=raggedright}
+\begin{lstlisting}[label=cacheLevenshtain, caption=Кеширующий Левенштейн]
+def cacheLevenshtain(left_str: str, right_str: str) -> int:
+    left_str_len = len(left_str) + 1
+    right_str_len = len(right_str) + 1
+    matrix = [[i + j for j in range(right_str_len)] \
+                        for i in range(left_str_len)]
+
+    for i in range(1, left_str_len):
+        for j in range(1, right_str_len):
+            if left_str[i - 1] == right_str[j - 1]:
+                c = 0
+            else:
+                c = 1
+
+            matrix[i][j] = min(
+                matrix[i - 1][j] + 1, matrix[i][j - 1] + 1,\
+                matrix[i - 1][j - 1] + c
+            )
+
+    return matrix[-1][-1]
+\end{lstlisting}
+
+\captionsetup{singlelinecheck = false, justification=raggedright}
+\begin{lstlisting}[label=recDamerayLevenshtain, caption=Рекурсивный Дамерау-Левенштейн]
+def recDamerayLevenshtain(left_str: str, right_str: str) -> int:
+    if left_str == "" or right_str == "":
+        return abs(len(left_str) - len(right_str))
+        
+    if left_str[-1] == right_str[-1]:
+        c = 0
+    else:
+        c = 1
+
+    result = min(
+        recDamerayLevenshtain(left_str, right_str[:-1]) + 1,
+        recDamerayLevenshtain(left_str[:-1], right_str) + 1,
+        recDamerayLevenshtain(left_str[:-1], right_str[:-1]) + c,
+    )
+
+    if (
+        len(left_str) >= 2
+        and len(right_str) >= 2
+        and left_str[-1] == right_str[-2]
+        and left_str[-2] == right_str[-1]
+    ):
+        result = min(result, recDamerayLevenshtain(left_str[:-2], \
+                                                right_str[:-2]) + 1)
+
+    return result
+\end{lstlisting}
+
+\captionsetup{singlelinecheck = false, justification=raggedright}
+\begin{lstlisting} [label=cacheDamerayLevenshtain, caption=Кеширующий Дамерау-Левенштейн]
+def cacheDamerayLevenshtain(left_str: str, right_str: str) -> int:
+    left_str_len = len(left_str) + 1
+    right_str_len = len(right_str) + 1
+    matrix = [[i + j for j in range(right_str_len)]\
+                      for i in range(left_str_len)]
+
+    for i in range(1, left_str_len):
+        for j in range(1, right_str_len):
+            if left_str[i - 1] == right_str[j - 1]:
+                c = 0
+            else:
+                c = 1
+
+            matrix[i][j] = min(
+                matrix[i - 1][j] + 1, matrix[i][j - 1] + 1,\
+                matrix[i - 1][j - 1] + c
+            )
+
+            if (
+                (i > 1 and j > 1)
+                and left_str[i - 1] == right_str[j - 2]
+                and left_str[i - 2] == right_str[j - 1]
+            ):
+                matrix[i][j] = min(matrix[i][j], matrix[i - 2][j - 2] + 1)
+
+    return matrix[-1][-1]
+\end{lstlisting}
+
+\section{Тестирование ПО}
+
+В таблице 3.1 приведены тестовые случаи для алгоритмов поиска редакционного расстояния.
+
+\begin{table}[H]
+	\begin{center}
+    	\captionsetup{singlelinecheck = false, justification=centering}
+		\caption{Тестовые случаи}
+		\begin{tabular}{c|c|c|c|c}
+			№ & Строка 1 & Строка 2 & Левенштейн & Д.-Левенштейн\\
+			\hline
+			1 & кит & кот & 1 & 1\\
+			2 & рома & роам & 2 & 1\\
+			3 & чикипики & чикипик & 1 & 1\\
+			4 & сальто & сльто & 1 & 1\\
+			5 & "" & kekw & 4 & 4\\
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\section{Вывод}
+
+В данном разделе были представлены выбор языка программирования, листинги реализаций алгоритмов и результаты тестирования.
