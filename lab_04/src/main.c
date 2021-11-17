@@ -3,7 +3,13 @@
 int main(void)
 {
     size_t matrix_size, threads_number;
-    unsigned long time_start, time_end, time_res;
+    // unsigned long time_start, time_end, time_res = 0;
+
+    // clock_t time_start, time_end;
+    // double time_res = 0;
+
+    struct timespec start1, stop1;
+    uint64_t time_res = 0;
 
     int rc;
 
@@ -55,31 +61,37 @@ int main(void)
 
         if (rc == 2)
         {
+            time_res = 0;
+
             printf("Input the number of threads: ");
             fscanf(stdin, "%zu", &threads_number);
 
             for (size_t i = 0; i < NUMBER_OF_RUNS; ++i)
             {
-                time_start = tick();
+                clock_gettime(CLOCK_MONOTONIC_RAW, &start1);
                 threads_matrix_sum(res_matrix, left_matrix, right_matrix, matrix_size, threads_number);
-                time_end = tick();
-                time_res += time_end - time_start;
+                clock_gettime(CLOCK_MONOTONIC_RAW, &stop1);
+
+                time_res += (stop1.tv_sec - start1.tv_sec) * 1000000000 + (stop1.tv_nsec - start1.tv_nsec);
             }
             time_res /= NUMBER_OF_RUNS;
-            printf("Time ticks: %lu\n", time_res);
+            printf("Time ticks: %llu\n", time_res);
         }
 
         if (rc == 3)
         {
+            time_res = 0;
+
             for (size_t i = 0; i < NUMBER_OF_RUNS; ++i)
             {
-                time_start = tick();
+                clock_gettime(CLOCK_MONOTONIC_RAW, &start1);
                 default_sum(res_matrix, left_matrix, right_matrix, matrix_size);
-                time_end = tick();
-                time_res += time_end - time_start;
+                clock_gettime(CLOCK_MONOTONIC_RAW, &stop1);
+
+                time_res += (stop1.tv_sec - start1.tv_sec) * 1000000000 + (stop1.tv_nsec - start1.tv_nsec);
             }
             time_res /= NUMBER_OF_RUNS;
-            printf("Time ticks: %lu\n", time_res);
+            printf("Time ticks: %llu\n", time_res);
         }
 
         free_matrix(left_matrix, matrix_size);
