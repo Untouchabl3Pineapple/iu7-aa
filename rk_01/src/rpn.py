@@ -6,7 +6,30 @@ class RPN(object):
         self.__stack = []
         self.__operations = {"(": 0, ")": 0, "+": 1, "-": 1, "*": 2, "/": 2, "%": 3, "\\": 3, "^": 4}
 
+    @staticmethod
+    def __deleteSpaces(input_func):
+        return input_func.replace(" ", "")
+
+    @staticmethod
+    def __getParam(el, params):
+        if el.isalpha():
+            try:
+                el = str(params[el])
+            except:
+                return
+        return el
+
+    @staticmethod
+    def __getSubFunctionRes(val, subfunc):
+        try:
+            res = ne.evaluate(subfunc + '(' + val + ')')
+        except:
+            return
+        return res
+
     def getRPN(self, input_func):
+        input_func = self.__deleteSpaces(input_func)
+
         output_func = ""
 
         for str_el in input_func:
@@ -35,32 +58,41 @@ class RPN(object):
 
         return output_func
 
-    @staticmethod
-    def __checkParams(el, params):
-        if el.isalpha():
-            try:
-                el = str(params[el])
-            except:
-                print("Not all parameters are specified")
-                return
-        return el
-
     def getFuncResByRPN(self, input_func, **params):
+        input_func = self.__deleteSpaces(input_func)
+        subfunc = ""
+
         for str_el in input_func:
             if str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit():
                 print("Incorrect function")
                 return
             elif str_el not in self.__operations:
-                self.__stack.append(str_el)
+                if not str_el.isdigit(): # checking for a function call
+                    subfunc += str_el
+                    continue
+
+                param = self.__getParam(subfunc, params)
+                subfunc_res = self.__getSubFunctionRes(str_el, subfunc)
+
+                if not param and not subfunc_res: 
+                    return
+
+                elif param:
+                    self.__stack.append(subfunc) # param
+                    self.__stack.append(str_el)
+                    continue
+                else:
+                    self.__stack.append(subfunc_res)
+                    subfunc = ""
             else:
                 first_stack_el = str(self.__stack.pop())
                 second_stack_el = str(self.__stack.pop())
 
-                check = self.__checkParams(first_stack_el, params)
-                if check: first_stack_el = str(check)
+                param = self.__getParam(first_stack_el, params)
+                if param: first_stack_el = str(param)
                 else: return
-                check = self.__checkParams(second_stack_el, params)
-                if check: second_stack_el = str(check)
+                param = self.__getParam(second_stack_el, params)
+                if param: second_stack_el = str(param)
                 else: return
 
                 # custom signs
