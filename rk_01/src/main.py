@@ -85,6 +85,7 @@ class App(RPN, GUI):
         errMessage.exec_()
 
 if __name__ == "__main__":
+    rpn = RPN()
 
     unittest.main()
 
