@@ -21,11 +21,12 @@ class TableOfValues(QTableWidget):
         self.setData()
 
     def setData(self):
+        self.setRowCount(len(self.data))
         for i, row in enumerate(self.data):
-            itemX = QTableWidgetItem(f'{row[0]:.3f}')
-            itemY = QTableWidgetItem(f'{row[1]:.3f}')
-            self.setItem(0, i + 1, itemX)
-            self.setItem(1, i + 1, itemY)
+            itemX = QTableWidgetItem("{:.3f}".format(row[0]))
+            itemY = QTableWidgetItem("{:.3f}".format(row[1]))
+            self.setItem(i, 0, itemX)
+            self.setItem(i, 1, itemY)
 
 
 class GUI(QDialog):
@@ -35,7 +36,7 @@ class GUI(QDialog):
 
         self.numOfRows = 10
         self.numOfCols = 2
-        self.tableBoxHeader = "Empty table"
+        self.tableBoxHeader = "Function values"
         self.formBoxHeader = "Enter yout function"
         self.tableHeaderLabels = ['X', 'Result']
         self.buttonLabel = "Enter function"

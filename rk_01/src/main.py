@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from rpn import RPN, RPNException
+import unittest
+from rpn import RPN, RPNException, TestRPN
 from gui import GUI
 import sys
 
@@ -46,7 +47,6 @@ class App(RPN, GUI):
         cur = self.userForm["lbound"]
         rbound = self.userForm["rbound"]
         step = self.userForm["step"]
-        print(cur, rbound, step)
         points = []
         points.append(cur)
 
@@ -57,20 +57,16 @@ class App(RPN, GUI):
         self.functionPoints = points
 
     def generateFunctionTable(self):
-
-        print(self.userForm["func"])
+        self.functionValues = []
         try:
             self.rpn = self.getRPN(self.userForm["func"])
         except RPNException:
                 print("RPN expression can't be computed!")
                 return
 
-        print(self.rpn, " ", self.functionPoints)
-
         for point in self.functionPoints:
             try:
-                result = self.getFuncResByRPN(self.rpn, x=point)
-                print(result)
+                result = self.getFuncResByRPN(self.rpn, x=point).tolist()
             except RPNException:
                 print("Function at point ", point, " can't be computed!")
                 continue
@@ -89,6 +85,9 @@ class App(RPN, GUI):
         errMessage.exec_()
 
 if __name__ == "__main__":
+
+    unittest.main()
+
     app = QApplication(sys.argv)
     rpnApp = App()
     rpnApp.show()

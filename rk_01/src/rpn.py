@@ -1,7 +1,9 @@
 import numexpr as ne
+import unittest
 
 class RPNException(Exception):
     pass
+
 
 class RPN(object):
     def __init__(self):
@@ -111,3 +113,48 @@ class RPN(object):
                 self.__stack.append(res)
 
         return self.__stack.pop() # return last stack el = res
+
+
+class TestRPN(unittest.TestCase, RPN):
+
+    def test_arithmetics(self):
+        rpn = RPN()
+        expr = rpn.getRPN("x - 4")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, 6)
+
+    def test_sine(self):
+        rpn = RPN()
+        expr = rpn.getRPN("sin(x)")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, -0.54402111)
+
+    def test_cosine(self):
+        rpn = RPN()
+        expr = rpn.getRPN("cos(x)")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, -0.83907153)
+
+    def test_exponent(self):
+        rpn = RPN()
+        expr = rpn.getRPN("x^2")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, 100)
+
+    def test_division(self):
+        rpn = RPN()
+        expr = rpn.getRPN("x / 2")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, 5)
+
+    def test_whole_division(self):
+        rpn = RPN()
+        expr = rpn.getRPN("x \\ 2")
+        result = rpn.getFuncResByRPN(expr, x=10).tolist()
+        self.assertEqual(result, 5)
+
+    def test_modulo(self):
+        rpn = RPN()
+        expr = rpn.getRPN("x % 3")
+        result = rpn.getFuncResByRPN(expr, x=5).tolist()
+        self.assertEqual(result, 2)
