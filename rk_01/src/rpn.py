@@ -1,5 +1,7 @@
 import numexpr as ne
 
+class RPNException(Exception):
+    pass
 
 class RPN(object):
     def __init__(self):
@@ -33,13 +35,16 @@ class RPN(object):
         output_func = ""
 
         for str_el in input_func:
+
             if str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit():
-                print("Incorrect function")
-                return
+                raise RPNException("Incorrect function was provided")
+
             elif str_el not in self.__operations and (str_el.isalpha() or str_el.isdigit()):
                 output_func += str_el
+
             elif str_el == "(":
                 self.__stack.append(str_el)
+
             elif str_el == ")":
                 top_el = self.__stack.pop()
                 while top_el != "(":
@@ -47,9 +52,9 @@ class RPN(object):
                     top_el = self.__stack.pop()
             else:
                 while (
-                    len(self.__stack) != 0
-                    and self.__operations[str_el] <= self.__operations[self.__stack[-1]]
-                ):
+                        len(self.__stack) != 0
+                        and self.__operations[str_el] <= self.__operations[self.__stack[-1]]
+                        ):
                     output_func += self.__stack.pop()
                 self.__stack.append(str_el)
 
@@ -63,9 +68,10 @@ class RPN(object):
         subfunc = ""
 
         for str_el in input_func:
+
             if str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit():
-                print("Incorrect function")
-                return
+                raise RPNException("Incorrect function was provided")
+
             elif str_el not in self.__operations:
                 if not str_el.isdigit(): # checking for a function call
                     subfunc += str_el
@@ -105,10 +111,3 @@ class RPN(object):
                 self.__stack.append(res)
 
         return self.__stack.pop() # return last stack el = res
-
-
-        
-
-
-    
-
