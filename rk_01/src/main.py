@@ -21,6 +21,7 @@ class App(RPN, GUI):
         rightBound = self.rightBoundPrompt.text()
         step = self.stepPrompt.text()
         func = self.functionPrompt.text()
+        precision = self.precisionPrompt.text()
 
         if leftBound == "":
             self.popupError("No left bound was provided!")
@@ -33,13 +34,22 @@ class App(RPN, GUI):
             self.popupError("No step was provided!")
             return
         if func == "":
-            self.popupError("No function was provided!")
+            self.popuperror("no function was provided!")
+            return
+        if precision == "":
+            self.popuperror("no function was provided!")
             return
 
         self.userForm["expression"] = func 
         self.userForm["lbound"] = float(leftBound)
         self.userForm["rbound"] = float(rightBound)
         self.userForm["step"] = float(step)
+
+        try:
+            self.userForm["precision"] = int(precision)
+        except ValueError:
+            self.popupError("Precision is not int.")
+            return
 
         if not self.checkStep():
             self.popupError("Step is not corrent value.")
@@ -60,7 +70,7 @@ class App(RPN, GUI):
 
         while (cur < rbound):
             cur += step
-            points.append(round(cur, 3))
+            points.append(round(cur, self.userForm["precision"]))
 
         self.functionPoints = points
 
@@ -86,14 +96,20 @@ class App(RPN, GUI):
             return
 
         self.exprLabel.setText("RPN expression: " + self.rpn)
+        precision = self.userForm["precision"]
 
         for point in self.functionPoints:
             try:
                 result = self.getFuncResByRPN(self.rpn, x=point)
             except RPNException:
                 print("Function at point", point, "can't be computed!")
+                self.functionValues.append([f'{point}', "NaN"])
                 continue
-            self.functionValues.append([point, result])
+            except ZeroDivisionError:
+                print("Zero division at", point, "occured")
+                self.functionValues.append([f'{point}', "NaN"])
+                continue
+            self.functionValues.append([f'{point}', f'{round(result, precision)}'])
 
     def updateAll(self):
         self.table.update(self.functionValues)
