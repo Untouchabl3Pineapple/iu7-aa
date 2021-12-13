@@ -4,6 +4,10 @@ from rpn import RPN, RPNException, TestRPN
 from gui import GUI
 import sys
 
+
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
 class App(RPN, GUI):
     def __init__(self):
         GUI.__init__(self)
@@ -32,10 +36,14 @@ class App(RPN, GUI):
             self.popupError("No function was provided!")
             return
 
-        self.userForm["func"] = func 
+        self.userForm["expression"] = func 
         self.userForm["lbound"] = float(leftBound)
         self.userForm["rbound"] = float(rightBound)
         self.userForm["step"] = float(step)
+
+        if not self.checkStep():
+            self.popupError("Step is not corrent value.")
+            return
 
         self.findPointsInRange()
 
@@ -52,23 +60,38 @@ class App(RPN, GUI):
 
         while (cur < rbound):
             cur += step
-            points.append(cur)
+            points.append(round(cur, 3))
 
         self.functionPoints = points
 
+
+    def checkStep(self):
+        if (self.userForm["lbound"] < self.userForm["rbound"] and self.userForm["step"] < 0.0):
+            return False
+
+        if (self.userForm["lbound"] > self.userForm["rbound"] and self.userForm["step"] > 0.0):
+            return False
+
+        if (isclose(self.userForm["step"], 0.0)):
+                return False
+        return True
+
     def generateFunctionTable(self):
         self.functionValues = []
+
         try:
-            self.rpn = self.getRPN(self.userForm["func"])
+            self.rpn = self.getRPN(self.userForm["expression"], x='x')
         except RPNException:
-                print("RPN expression can't be computed!")
-                return
+            print("RPN expression can't be computed!")
+            return
+
+        self.exprLabel.setText("RPN expression: " + self.rpn)
 
         for point in self.functionPoints:
             try:
-                result = self.getFuncResByRPN(self.rpn, x=point).tolist()
+                result = self.getFuncResByRPN(self.rpn, x=point)
             except RPNException:
-                print("Function at point ", point, " can't be computed!")
+                print("Function at point", point, "can't be computed!")
                 continue
             self.functionValues.append([point, result])
 
@@ -85,9 +108,6 @@ class App(RPN, GUI):
         errMessage.exec_()
 
 if __name__ == "__main__":
-    rpn = RPN()
-
-    unittest.main()
 
     app = QApplication(sys.argv)
     rpnApp = App()

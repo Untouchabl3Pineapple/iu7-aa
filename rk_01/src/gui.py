@@ -36,12 +36,13 @@ class GUI(QDialog):
 
         self.numOfRows = 10
         self.numOfCols = 2
-        self.tableBoxHeader = "Function values"
-        self.formBoxHeader = "Enter yout function"
+        self.tableBoxHeader = "Expression values"
+        self.formBoxHeader = "Enter yout expression"
         self.tableHeaderLabels = ['X', 'Result']
-        self.buttonLabel = "Enter function"
+        self.buttonLabel = "Enter your expression"
         self.timeout = 2000
         self.userForm = { "func": "", "lbound": "", "rbound": "", "step": ""}
+        self.RPNExpression = "No expression"
 
         self.initData = []
 
@@ -63,10 +64,13 @@ class GUI(QDialog):
     def createTableBox(self):
         self.tableGroupBox = QGroupBox(self.tableBoxHeader)
 
+        self.exprLabel = QLabel(self.RPNExpression)
+
         self.table = TableOfValues(self.initData, self.numOfRows, self.numOfCols, self.tableHeaderLabels)
 
-        layout = QGridLayout()
+        layout = QVBoxLayout()
 
+        layout.addWidget(self.exprLabel)
         layout.addWidget(self.table)
         self.tableGroupBox.setLayout(layout)
 
