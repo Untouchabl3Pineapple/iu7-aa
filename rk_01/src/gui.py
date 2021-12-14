@@ -23,8 +23,8 @@ class TableOfValues(QTableWidget):
     def setData(self):
         self.setRowCount(len(self.data))
         for i, row in enumerate(self.data):
-            itemX = QTableWidgetItem("{:.3f}".format(row[0]))
-            itemY = QTableWidgetItem("{:.3f}".format(row[1]))
+            itemX = QTableWidgetItem(row[0])
+            itemY = QTableWidgetItem(row[1])
             self.setItem(i, 0, itemX)
             self.setItem(i, 1, itemY)
 
@@ -81,19 +81,22 @@ class GUI(QDialog):
         self.leftBoundPrompt = QLineEdit()
         self.rightBoundPrompt = QLineEdit()
         self.stepPrompt = QLineEdit()
+        self.precisionPrompt = QLineEdit()
         self.button = QPushButton(self.buttonLabel)
         self.button.clicked.connect(self.processFunction)
         
-        labels = ["Function", "Left bound", "Right bound", "Step"]
+        labels = ["Expression", "Precision", "Left bound", "Right bound", "Step"]
 
         QLabels = [QLabel(label) for label in labels]
 
         layout = QGridLayout()
         layout.addWidget(QLabels[0], 0, 0, 1, 2)
+        layout.addWidget(QLabels[1], 0, 2, 1, 2)
         layout.addWidget(self.functionPrompt, 1, 0, 1, 2)
-        layout.addWidget(QLabels[1], 2, 0)
-        layout.addWidget(QLabels[2], 2, 1)
-        layout.addWidget(QLabels[3], 2, 2)
+        layout.addWidget(self.precisionPrompt, 1, 2, 1, 1)
+        layout.addWidget(QLabels[2], 2, 0)
+        layout.addWidget(QLabels[3], 2, 1)
+        layout.addWidget(QLabels[4], 2, 2)
         layout.addWidget(self.leftBoundPrompt, 3, 0)
         layout.addWidget(self.rightBoundPrompt, 3, 1)
         layout.addWidget(self.stepPrompt, 3, 2)
