@@ -37,12 +37,12 @@ class GUI(QDialog):
         self.numOfRows = 10
         self.numOfCols = 2
         self.tableBoxHeader = "Expression values"
-        self.formBoxHeader = "Enter yout expression"
+        self.formBoxHeader = "Enter your expression"
         self.tableHeaderLabels = ['X', 'Result']
         self.buttonLabel = "Enter your expression"
         self.timeout = 2000
         self.userForm = { "func": "", "lbound": "", "rbound": "", "step": ""}
-        self.RPNExpression = "No expression"
+        self.RPNExpression = "No expression is set"
 
         self.initData = []
 

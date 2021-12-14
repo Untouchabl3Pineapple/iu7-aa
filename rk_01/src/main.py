@@ -8,11 +8,13 @@ import sys
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
+
 class App(RPN, GUI):
     def __init__(self):
         GUI.__init__(self)
         RPN.__init__(self)
 
+        self.rel_tol = 1e-09
         self.functionPoints = []
         self.functionValues = []
 
@@ -26,7 +28,6 @@ class App(RPN, GUI):
         if leftBound == "":
             self.popupError("No left bound was provided!")
             return
-
         if rightBound == "":
             self.popupError("No right bound was provided!")
             return
@@ -55,6 +56,10 @@ class App(RPN, GUI):
             self.popupError("Step is not corrent value.")
             return
 
+        if not self.checkPrecision():
+            self.popupError("Precision is less than 1.")
+            return
+
         self.findPointsInRange()
 
         self.generateFunctionTable()
@@ -62,28 +67,40 @@ class App(RPN, GUI):
         self.updateAll()
 
     def findPointsInRange(self):
-        cur = self.userForm["lbound"]
+        lbound = self.userForm["lbound"]
         rbound = self.userForm["rbound"]
         step = self.userForm["step"]
+        precision = self.userForm["precision"]
         points = []
-        points.append(cur)
 
-        while (cur < rbound):
-            cur += step
-            points.append(round(cur, self.userForm["precision"]))
+        if rbound > lbound:
+            cur = lbound
+            points.append(cur)
+            while cur < rbound:
+                cur += step
+                points.append(round(cur, precision))
+        else:
+            cur = lbound
+            points.append(cur)
+            while cur > rbound:
+                cur += step
+                points.append(round(cur, precision))
+
 
         self.functionPoints = points
-
 
     def checkStep(self):
         if (self.userForm["lbound"] < self.userForm["rbound"] and self.userForm["step"] < 0.0):
             return False
-
         if (self.userForm["lbound"] > self.userForm["rbound"] and self.userForm["step"] > 0.0):
             return False
-
         if (isclose(self.userForm["step"], 0.0)):
                 return False
+        return True
+
+    def checkPrecision(self):
+        if (self.userForm["precision"] < 1):
+            return False
         return True
 
     def generateFunctionTable(self):
@@ -114,8 +131,6 @@ class App(RPN, GUI):
     def updateAll(self):
         self.table.update(self.functionValues)
 
-
-
     @staticmethod
     def popupError(error):
         errMessage = QMessageBox()
@@ -123,8 +138,8 @@ class App(RPN, GUI):
         errMessage.setText(error)
         errMessage.exec_()
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     rpnApp = App()
     rpnApp.show()
