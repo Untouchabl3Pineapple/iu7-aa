@@ -87,7 +87,6 @@ class App(RPN, GUI):
 
             points.append(round(cur, precision))
 
-
         self.functionPoints = points
 
     def checkStep(self):
@@ -113,6 +112,8 @@ class App(RPN, GUI):
             return
         except Exception as e:
             self.popupError('Invalid expression')
+            return    
+        except RPNException:
             print("RPN expression can't be computed!")
             return
 

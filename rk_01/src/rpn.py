@@ -160,7 +160,7 @@ class RPN(object):
     def getFuncResByRPN(self, func:str, **params):
         func = func.split()
 
-        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x)}
+        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x), '-': lambda x : -x}
         binary = {'+'  : lambda x, y: x +  y,
                   '-'  : lambda x, y: x -  y,
                   '*'  : lambda x, y: x *  y,
