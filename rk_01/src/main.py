@@ -87,7 +87,6 @@ class App(RPN, GUI):
 
             points.append(round(cur, precision))
 
-
         self.functionPoints = points
 
     def checkStep(self):
@@ -110,7 +109,7 @@ class App(RPN, GUI):
             self.rpn, self.history = self.getRPN(self.userForm["expression"], x='x')
         except RPNBadFunction as e:
             self.popupError(str(e))
-            return
+            return    
         except RPNException:
             print("RPN expression can't be computed!")
             return
