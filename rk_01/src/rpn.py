@@ -75,17 +75,23 @@ class RPN(object):
 
             if str_el == ' ':
                 pass
-            elif str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit():
+            elif str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit() and not str_el == '.':
                 raise RPNBadFunction("Incorrect function was provided")
             
             elif str_el not in self.__operations and (str_el.isdigit()):
+                dot = False
                 if i > 0 and input_func[i - 1] == '-':
                     output_func += '-'
                     history.capture(i, str_el, output_func, self.__stack)
-                while i < len(input_func) and input_func[i].isdigit():
+                while i < len(input_func) and (input_func[i].isdigit() or input_func[i] == '.'):
+                    if dot and input_func[i] == '.':
+                        raise RPNBadFunction('Incorrect float number')
+                    
+                    dot = dot or input_func[i] == '.'
+
                     output_func += input_func[i]
                     history.capture(i, input_func[i], output_func, self.__stack)
-                    if i + 1 < len(input_func) and input_func[i + 1].isdigit():
+                    if i + 1 < len(input_func) and (input_func[i + 1].isdigit() or input_func[i + 1] == '.'):
                         i += 1
                     else:
                         break
@@ -173,16 +179,20 @@ class RPN(object):
                 raise RPNBadFunction("Incorrect expression.")
             if i in self.__operations:
                 if i in unary:
+                    if len(operand_queue) < 1:
+                        raise RPNBadFunction('Expected operand')
                     oper = float(operand_queue.pop())
                     res = unary[i](oper)
                 else:
-                    r = float(operand_queue.pop())
-                    l = float(operand_queue.pop())
+                    if len(operand_queue) < 2:
+                        raise RPNBadFunction('Expected operand')
+                    r = operand_queue.pop()
+                    l = operand_queue.pop()
 
                     res = binary[i](l, r)
                 operand_queue.append(res)
             elif is_numeric(i):
-                operand_queue.append(i)
+                operand_queue.append(float(i))
             else:
                 try:
                     if i[0] == '-':

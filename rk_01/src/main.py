@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMessageBox
 import unittest
-from rpn import RPN, RPNException, TestRPN, History
+from rpn import RPN, RPNBadFunction, RPNException, TestRPN, History
 from gui import GUI
 import sys
 
@@ -43,14 +43,14 @@ class App(RPN, GUI):
             return
 
         self.userForm["expression"] = func 
-        self.userForm["lbound"] = float(leftBound)
-        self.userForm["rbound"] = float(rightBound)
-        self.userForm["step"] = float(step)
 
         try:
+            self.userForm["lbound"] = float(leftBound)
+            self.userForm["rbound"] = float(rightBound)
+            self.userForm["step"] = float(step)
             self.userForm["precision"] = int(precision)
         except ValueError:
-            self.popupError("Precision is not int.")
+            self.popupError("Expected float number")
             return
 
         if not self.checkStep():
@@ -74,18 +74,18 @@ class App(RPN, GUI):
         precision = self.userForm["precision"]
         points = []
 
-        if rbound > lbound:
-            cur = lbound
-            points.append(cur)
-            while cur < rbound:
-                cur += step
-                points.append(round(cur, precision))
-        else:
-            cur = lbound
-            while cur > rbound:
-                cur += step
-                points.append(round(cur, precision))
+        cur = lbound
+        points = [cur]
 
+        while (True):
+            cur += step
+
+            if (cur > rbound or abs(cur - rbound) < 1e-3):
+                cur = rbound
+                points.append(round(cur, precision))
+                break
+
+            points.append(round(cur, precision))
 
         self.functionPoints = points
 
@@ -107,6 +107,9 @@ class App(RPN, GUI):
 
         try:
             self.rpn, self.history = self.getRPN(self.userForm["expression"], x='x')
+        except RPNBadFunction as e:
+            self.popupError(str(e))
+            return    
         except RPNException:
             print("RPN expression can't be computed!")
             return
@@ -131,13 +134,16 @@ class App(RPN, GUI):
         for point in self.functionPoints:
             try:
                 result = self.getFuncResByRPN(self.rpn, x=point)
+            except RPNBadFunction as e:
+                self.popupError(str(e))
+                return
             except RPNException:
                 print("Function at point", point, "can't be computed!")
-                self.functionValues.append([f'{point}', "NaN"])
+                self.functionValues.append([f'{point}', "Выколото"])
                 continue
             except ZeroDivisionError:
                 print("Zero division at", point, "occured")
-                self.functionValues.append([f'{point}', "NaN"])
+                self.functionValues.append([f'{point}', "Выколото"])
                 continue
             self.functionValues.append([f'{point}', f'{round(result, precision)}'])
 
