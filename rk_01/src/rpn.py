@@ -160,7 +160,7 @@ class RPN(object):
     def getFuncResByRPN(self, func:str, **params):
         func = func.split()
 
-        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x), '-': lambda x : -x}
+        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x)}
         binary = {'+'  : lambda x, y: x +  y,
                   '-'  : lambda x, y: x -  y,
                   '*'  : lambda x, y: x *  y,
@@ -175,8 +175,6 @@ class RPN(object):
         res = 0
 
         for i in func:
-            if i in ('(', ')'):
-                raise RPNBadFunction("Incorrect expression.")
             if i in self.__operations:
                 if i in unary:
                     if len(operand_queue) < 1:
@@ -203,7 +201,8 @@ class RPN(object):
                 except KeyError:
                     raise RPNBadFunction("Incorrect expression.")
         if len(operand_queue) > 1:
-            raise RPNBadFunction()
+            print(operand_queue)
+            raise RPNBadFunction('Expected operator')
         if len(operand_queue) > 0:
             res = operand_queue.pop()
         

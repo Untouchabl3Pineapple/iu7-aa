@@ -109,6 +109,9 @@ class App(RPN, GUI):
             self.rpn, self.history = self.getRPN(self.userForm["expression"], x='x')
         except RPNBadFunction as e:
             self.popupError(str(e))
+            return
+        except Exception as e:
+            self.popupError('Invalid expression')
             return    
         except RPNException:
             print("RPN expression can't be computed!")
