@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMessageBox
 import unittest
-from rpn import RPN, RPNException, TestRPN
+from rpn import RPN, RPNException, TestRPN, History
 from gui import GUI
 import sys
 
@@ -17,6 +17,7 @@ class App(RPN, GUI):
         self.rel_tol = 1e-09
         self.functionPoints = []
         self.functionValues = []
+        self.historyValues = []
 
     def processFunction(self):
         leftBound = self.leftBoundPrompt.text()
@@ -35,7 +36,7 @@ class App(RPN, GUI):
             self.popupError("No step was provided!")
             return
         if func == "":
-            self.popuperror("no function was provided!")
+            self.popupError("no function was provided!")
             return
         if precision == "":
             self.popuperror("no function was provided!")
@@ -81,7 +82,6 @@ class App(RPN, GUI):
                 points.append(round(cur, precision))
         else:
             cur = lbound
-            points.append(cur)
             while cur > rbound:
                 cur += step
                 points.append(round(cur, precision))
@@ -90,9 +90,7 @@ class App(RPN, GUI):
         self.functionPoints = points
 
     def checkStep(self):
-        if (self.userForm["lbound"] < self.userForm["rbound"] and self.userForm["step"] < 0.0):
-            return False
-        if (self.userForm["lbound"] > self.userForm["rbound"] and self.userForm["step"] > 0.0):
+        if (self.userForm["step"] < 0.0):
             return False
         if (isclose(self.userForm["step"], 0.0)):
                 return False
@@ -105,12 +103,27 @@ class App(RPN, GUI):
 
     def generateFunctionTable(self):
         self.functionValues = []
+        self.historyValues = []
 
         try:
-            self.rpn = self.getRPN(self.userForm["expression"], x='x')
+            self.rpn, self.history = self.getRPN(self.userForm["expression"], x='x')
         except RPNException:
             print("RPN expression can't be computed!")
             return
+
+        for state in self.history.history:
+            values = []
+            for i, key in enumerate(state):
+                if (key != 'stack'):
+                    values.append(f'{state[key]}')
+                else:
+                    stackToStr = ''
+                    for element in state[key]:
+                        stackToStr += ' '
+                        stackToStr += element
+                    values.append(stackToStr)
+
+            self.historyValues.append(values)
 
         self.exprLabel.setText("RPN expression: " + self.rpn)
         precision = self.userForm["precision"]
@@ -129,7 +142,8 @@ class App(RPN, GUI):
             self.functionValues.append([f'{point}', f'{round(result, precision)}'])
 
     def updateAll(self):
-        self.table.update(self.functionValues)
+        self.funcTable.update(self.functionValues)
+        self.historyTable.update(self.historyValues)
 
     @staticmethod
     def popupError(error):

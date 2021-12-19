@@ -9,6 +9,13 @@ def trig_check(haystack:str):
         if haystack.startswith(oper):
             return oper
 
+def is_numeric(str):
+    try:
+        float(str)
+        return True
+    except:
+        return False
+
 def cot(x):
     return 1 / math.tan(x)
 
@@ -16,6 +23,15 @@ def cot(x):
 class RPNException(Exception):
     pass
 
+class RPNBadFunction(Exception):
+    pass
+
+class History(object):
+    def __init__(self):
+        self.history = []
+
+    def capture(self, index, symbol, array, stack):
+        self.history.append({ 'index': index, 'symbol': symbol, 'array': array, 'stack': stack.copy() })
 
 class RPN(object):
     def __init__(self):
@@ -38,28 +54,37 @@ class RPN(object):
     @staticmethod
     def __getSubFunctionRes(val, subfunc):
         try:
-            res = ne.evaluate(subfunc + '(' + val + ')')
+           res = ne.evaluate(subfunc + '(' + val + ')')
         except:
             return
         return res
 
     def getRPN(self, input_func:str, **vars):
-        input_func = self.__deleteSpaces(input_func)
+        # input_func = self.__deleteSpaces(input_func)
+
 
         output_func = ""
+        history = History()
+
+        braces = 0
 
         i = 0
         while i < len(input_func):
             str_el = input_func[i]
 
+
             if str_el == ' ':
                 pass
             elif str_el not in self.__operations and not str_el.isalpha() and not str_el.isdigit():
-                raise RPNException("Incorrect function was provided")
+                raise RPNBadFunction("Incorrect function was provided")
             
             elif str_el not in self.__operations and (str_el.isdigit()):
+                if i > 0 and input_func[i - 1] == '-':
+                    output_func += '-'
+                    history.capture(i, str_el, output_func, self.__stack)
                 while i < len(input_func) and input_func[i].isdigit():
                     output_func += input_func[i]
+                    history.capture(i, input_func[i], output_func, self.__stack)
                     if i + 1 < len(input_func) and input_func[i + 1].isdigit():
                         i += 1
                     else:
@@ -68,60 +93,84 @@ class RPN(object):
                 output_func += ' '
             
             elif vars.get(str_el) is not None:
+                if i > 0 and input_func[i - 1] == '-':
+                    output_func += '-' 
+                    history.capture(i, str_el, output_func, self.__stack)
                 output_func += str_el
                 output_func += ' '
+                history.capture(i, str_el, output_func, self.__stack)
 
             elif str_el == "(":
                 self.__stack.append(str_el)
+                history.capture(i, str_el, output_func, self.__stack)
+                braces += 1
 
             elif str_el == ")":
+                if braces == 0:
+                    raise RPNBadFunction('Bad braces')
+                braces -= 1
+                history.capture(i, str_el, output_func, self.__stack)
                 top_el = self.__stack.pop()
                 while top_el != "(":
                     output_func += top_el
                     output_func += ' '
+                    history.capture(i, str_el, output_func, self.__stack)
                     top_el = self.__stack.pop()
+                    history.capture(i, str_el, output_func, self.__stack)
             else:
                 oper = str_el
                 
                 if str_el in ('s', 'c', 't'):
                     oper = trig_check(input_func[i:])
                     i += len(oper) - 1
+                    history.capture(i, str_el, output_func, self.__stack)
                 
+                if str_el == '-' and (is_numeric(input_func[i + 1]) or input_func[i + 1].isalpha()):
+                    pass
+                else:
+                    while (
+                            len(self.__stack) != 0
+                            and self.__operations[oper] <= self.__operations[self.__stack[-1]]
+                            ):
+                        history.capture(i, str_el, output_func, self.__stack)
+                        output_func += self.__stack.pop()
+                        output_func += ' '
+                        history.capture(i, str_el, output_func, self.__stack)
 
-                while (
-                        len(self.__stack) != 0
-                        and self.__operations[oper] <= self.__operations[self.__stack[-1]]
-                        ):
-                    output_func += self.__stack.pop()
-                    output_func += ' '
-
-                self.__stack.append(oper)
+                    self.__stack.append(oper)
+                    history.capture(i, str_el, output_func, self.__stack)
             
             i += 1
+            history.capture(i, str_el, output_func, self.__stack)
 
         while len(self.__stack) != 0:
+            history.capture(i, str_el, output_func, self.__stack)
             output_func += self.__stack.pop()
             output_func += ' '
+            history.capture(i, str_el, output_func, self.__stack)
 
-        return output_func
+        return output_func, history
     
     def getFuncResByRPN(self, func:str, **params):
         func = func.split()
 
-        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x)}
+        unary = {'sin': math.sin, 'cos': math.cos, 'tan' : math.tan, 'cot': lambda x : cot(x), '-': lambda x : -x}
         binary = {'+'  : lambda x, y: x +  y,
                   '-'  : lambda x, y: x -  y,
                   '*'  : lambda x, y: x *  y,
                   '/'  : lambda x, y: x /  y,
                   '\\' : lambda x, y: x // y,
                   '^'  : lambda x, y: x ** y,
-                  '%'  : lambda x, y: x % y}
+                  '%'  : lambda x, y: x % y
+                }
 
         operand_queue = []
 
         res = 0
 
         for i in func:
+            if i in ('(', ')'):
+                raise RPNBadFunction("Incorrect expression.")
             if i in self.__operations:
                 if i in unary:
                     oper = float(operand_queue.pop())
@@ -132,13 +181,21 @@ class RPN(object):
 
                     res = binary[i](l, r)
                 operand_queue.append(res)
-            elif i.isdigit():
+            elif is_numeric(i):
                 operand_queue.append(i)
             else:
                 try:
-                    operand_queue.append(params[i])
+                    if i[0] == '-':
+                        i = i[1:]
+                        operand_queue.append(-params[i])
+                    else:
+                        operand_queue.append(params[i])
                 except KeyError:
-                    raise RPNException("Incorrect function was provided")
+                    raise RPNBadFunction("Incorrect expression.")
+        if len(operand_queue) > 1:
+            raise RPNBadFunction()
+        if len(operand_queue) > 0:
+            res = operand_queue.pop()
         
         return res
 
@@ -185,3 +242,4 @@ class TestRPN(unittest.TestCase, RPN):
         expr = rpn.getRPN("x % 3", x=0)
         result = rpn.getFuncResByRPN(expr, x=5)
         self.assertEqual(result, 2)
+ 
