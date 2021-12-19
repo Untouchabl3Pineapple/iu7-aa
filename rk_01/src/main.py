@@ -111,7 +111,8 @@ class App(RPN, GUI):
         except RPNBadFunction as e:
             self.popupError(str(e))
             return
-        except RPNException:
+        except Exception as e:
+            self.popupError('Invalid expression')
             print("RPN expression can't be computed!")
             return
 
